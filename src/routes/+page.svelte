@@ -183,7 +183,7 @@
     <div>
         <div class="mb-12 flex flex-col items-center">
             {#if step === 1}
-                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ duration: 500 }}>
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
                     Hang tight, we're removing the background from your image.
                 </span>
             {:else if step === 2}
@@ -191,8 +191,12 @@
                     It's all happenning live in your browser, so it might take some time ...
                 </span>
             {:else if step === 0}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ duration: 500 }}>
+                    Drop your photo or click down below to import it.
+                </span>
+            {:else if isImageProcessed}
                 <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
-                    Drop your photo or click to import it.
+                    Edit your profile picture as you want!
                 </span>
             {/if}
         </div>
