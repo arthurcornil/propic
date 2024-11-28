@@ -20,21 +20,25 @@
             return ;
         }
         file = droppedFiles[0];
+        loading = true;
         const data = await removeBackgroundFromFile();
         const trimmedBlob = await trimTransparentEdges(data);
         imageUrl = URL.createObjectURL(trimmedBlob);
-        isImageProcessed = true;
+        positionImage();
         loading = false;
+        isImageProcessed = true;
+    }
+
+    function positionImage() {
+    
     }
 
     async function removeBackgroundFromFile(): Promise<Blob> {
         if (!file) {
             throw Error('No file selected');
         }
-        loading = true;
         try {
             const data: Blob = await removeBackground(file);
-            loading = false;
             return data;
         } catch (error) {
             loading = false;
@@ -177,7 +181,7 @@
 </script>
 <main class="p-4 flex items-center flex-col gap-12 pt-12">
     <div class="flex flex-col items-center gap-4">
-        <h1 class="text-gray-900 text-3xl font-bold">PicoPop</h1>
+        <h1 class="text-gray-900 text-3xl font-bold">ProPic</h1>
         <h1 class="text-gray-700 text-xl font-semibold">Generate a cool profile picture in seconds!</h1>
     </div>
     <div>
@@ -188,7 +192,7 @@
                 </span>
             {:else if step === 2}
                 <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
-                    It's all happenning live in your browser, so it might take some time ...
+                    It's all happenning live from your browser, so it might take some time ...
                 </span>
             {:else if step === 0}
                 <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ duration: 500 }}>
@@ -220,11 +224,12 @@
                     <span class="sr-only">Loading...</span>
                 </div>
             {/if}
-            {#if isImageProcessed}
-                <img src={imageUrl} class="max-w-60"/>
-            {/if}
             <input type="file" on:change={createPop} hidden>
-            <div class="rounded-full w-60 h-60" style="background-color: {color}"></div>
+            <div class="rounded-full w-60 h-60 overflow-hidden" style="background-color: {color}">
+                {#if isImageProcessed}
+                    <img src={imageUrl} class="max-w-60"/>
+                {/if}
+            </div>
     </div>
     {#if isImageProcessed}
         <div class="grid grid-cols-3 gap-2">
