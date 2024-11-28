@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { removeBackground } from '@imgly/background-removal';
     import { UploadSolid } from 'flowbite-svelte-icons';
+    import { fly } from 'svelte/transition';
 
     let file: File | null = $state(null);
     let loading = $state(false);
     let imageUrl: string = $state('');
     let isImageProcessed = $state(false);
-    let color: string = $state('#1236EF');
+    let color: string = $state('#679c67');
+    let step: number = $state(0);
 
     async function createPop(event: DragEvent) {
         event.preventDefault();
@@ -14,20 +16,164 @@
 
         const droppedFiles = event.dataTransfer?.files;
 
-        if (droppedFiles && droppedFiles.length > 0) {
-            file = droppedFiles[0];
-            loading = true;
-            try {
-                const data: Blob = await removeBackground(file);
-                imageUrl = URL.createObjectURL(data);
-                loading = false;
-                isImageProcessed = true;
-            } catch (error) {
-                loading = false;
-                console.error('Error: ', error);
-            }
+        if (!droppedFiles || droppedFiles.length === 0) {
+            return ;
+        }
+        file = droppedFiles[0];
+        const data = await removeBackgroundFromFile();
+        const trimmedBlob = await trimTransparentEdges(data);
+        imageUrl = URL.createObjectURL(trimmedBlob);
+        isImageProcessed = true;
+        loading = false;
+    }
+
+    async function removeBackgroundFromFile(): Promise<Blob> {
+        if (!file) {
+            throw Error('No file selected');
+        }
+        loading = true;
+        try {
+            const data: Blob = await removeBackground(file);
+            loading = false;
+            return data;
+        } catch (error) {
+            loading = false;
+            throw Error(`Error: ${error}`);
         }
     }
+
+    async function trimTransparentEdges(inputBlob: Blob): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    if (!ctx) {
+                        reject(new Error("Could not create canvas context."));
+                        return;
+                    }
+
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+
+                    ctx.drawImage(image, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const { data, width, height } = imageData;
+
+                    let top = 0, left = 0, right = width - 1, bottom = height - 1;
+
+                    topLoop: for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const alpha = data[(y * width + x) * 4 + 3];
+                            if (alpha > 0) {
+                                top = y;
+                                break topLoop;
+                            }
+                        }
+                    }
+
+                    bottomLoop: for (let y = height - 1; y >= 0; y--) {
+                        for (let x = 0; x < width; x++) {
+                            const alpha = data[(y * width + x) * 4 + 3];
+                            if (alpha > 0) {
+                                bottom = y;
+                                break bottomLoop;
+                            }
+                        }
+                    }
+
+                    leftLoop: for (let x = 0; x < width; x++) {
+                        for (let y = 0; y < height; y++) {
+                            const alpha = data[(y * width + x) * 4 + 3];
+                            if (alpha > 0) {
+                                left = x;
+                                break leftLoop;
+                            }
+                        }
+                    }
+
+                    rightLoop: for (let x = width - 1; x >= 0; x--) {
+                        let hasNonTransparentPixel = false;
+                        for (let y = 0; y < height; y++) {
+                            const alpha = data[(y * width + x) * 4 + 3];
+                            if (alpha > 0) {
+                                hasNonTransparentPixel = true;
+                                break;
+                            }
+                        }
+                        if (hasNonTransparentPixel) {
+                            right = x;
+                            break rightLoop;
+                        }
+                    }
+
+                    const trimmedWidth = right - left + 1;
+                    const trimmedHeight = bottom - top + 1;
+
+                    if (trimmedWidth <= 0 || trimmedHeight <= 0) {
+                        reject(new Error("Image is fully transparent or invalid."));
+                        return;
+                    }
+
+                    const trimmedCanvas = document.createElement("canvas");
+                    const trimmedCtx = trimmedCanvas.getContext("2d");
+
+                    if (!trimmedCtx) {
+                        reject(new Error("Could not create trimmed canvas context."));
+                        return;
+                    }
+
+                    trimmedCanvas.width = trimmedWidth;
+                    trimmedCanvas.height = trimmedHeight;
+
+                    trimmedCtx.drawImage(
+                        canvas,
+                        left,
+                        top,
+                        trimmedWidth,
+                        trimmedHeight,
+                        0,
+                        0,
+                        trimmedWidth,
+                        trimmedHeight
+                    );
+
+                    trimmedCanvas.toBlob((trimmedBlob) => {
+                        if (trimmedBlob) {
+                            resolve(trimmedBlob);
+                        } else {
+                            reject(new Error("Failed to create Blob from trimmed canvas."));
+                        }
+                    }, "image/png");
+                };
+
+                image.onerror = () => {
+                    reject(new Error("Failed to load image."));
+                };
+
+                image.src = reader.result as string;
+            };
+
+            reader.onerror = () => {
+                reject(new Error("Failed to read Blob."));
+            };
+
+            reader.readAsDataURL(inputBlob);
+        });
+    }
+
+    $effect(() => {
+        if (loading) {
+            step = 1;
+            setTimeout(() => {
+                step = 2;
+            }, 5000);
+	}}); 
 </script>
 <main class="p-4 flex items-center flex-col gap-12 pt-12">
     <div class="flex flex-col items-center gap-4">
@@ -35,10 +181,21 @@
         <h1 class="text-gray-700 text-xl font-semibold">Generate a cool profile picture in seconds!</h1>
     </div>
     <div>
-        {#if loading}
-            <span class="text-gray-600 text-lg font-normal">Hang tight, we're removing the background from your image.</span>
-            <span class="text-gray-600 text-lg font-normal">It's all happenning live in your browser so it might take some time ...</span>
-        {/if}
+        <div class="mb-12 flex flex-col items-center">
+            {#if step === 1}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ duration: 500 }}>
+                    Hang tight, we're removing the background from your image.
+                </span>
+            {:else if step === 2}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
+                    It's all happenning live in your browser, so it might take some time ...
+                </span>
+            {:else if step === 0}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
+                    Drop your photo or click to import it.
+                </span>
+            {/if}
+        </div>
         <div class="flex justify-center items-center">
             {#if !isImageProcessed && !loading}
                 <div 
@@ -60,16 +217,17 @@
                 </div>
             {/if}
             {#if isImageProcessed}
-                <img src={imageUrl} class="max-w-60 max-h-40 absolute"/>
+                <img src={imageUrl} class="max-w-60"/>
             {/if}
             <input type="file" on:change={createPop} hidden>
             <div class="rounded-full w-60 h-60" style="background-color: {color}"></div>
-        </div>
     </div>
     {#if isImageProcessed}
-        <div>
-            <h1 class="text-gray-700 text-xl font-semibold mb-5">Choose a colour</h1>
-            <input type="color" bind:value={color}>
+        <div class="grid grid-cols-3 gap-2">
+            <div>
+                <h1 class="text-gray-700 text-xl font-semibold mb-5">Choose a colour</h1>
+                <input type="color" bind:value={color}>
+            </div>
         </div>
     {/if}
 </main>
