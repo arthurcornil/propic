@@ -2,6 +2,11 @@
 	import { removeBackground } from '@imgly/background-removal';
     import { UploadSolid } from 'flowbite-svelte-icons';
     import { fly } from 'svelte/transition';
+    import autocrop from 'autocrop-js';
+    import { Slider } from "$lib/components/ui/slider";
+    import { Button } from "$lib/components/ui/button";
+    import html2canvas from 'html2canvas';
+	import { walk } from 'svelte/compiler';
 
     let file: File | null = $state(null);
     let loading = $state(false);
@@ -9,8 +14,12 @@
     let isImageProcessed = $state(false);
     let color: string = $state('#679c67');
     let step: number = $state(0);
+    let yImagePosition: number[] = $state([40]);
+    let xImagePosition: number[] = $state([0]);
+    let imageZoom: number[] = $state([1]);
+    let proPic: HTMLElement;
 
-    async function createPop(event: DragEvent) {
+    async function processImage(event: DragEvent) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -21,16 +30,12 @@
         }
         file = droppedFiles[0];
         loading = true;
-        const data = await removeBackgroundFromFile();
-        const trimmedBlob = await trimTransparentEdges(data);
-        imageUrl = URL.createObjectURL(trimmedBlob);
-        positionImage();
+        const data: Blob = await removeBackgroundFromFile();
+        const url: string = URL.createObjectURL(data);
+        const result = await autocrop(url, { alphaThreshold: 10 });
+        imageUrl = result.dataURL;
         loading = false;
         isImageProcessed = true;
-    }
-
-    function positionImage() {
-    
     }
 
     async function removeBackgroundFromFile(): Promise<Blob> {
@@ -46,129 +51,17 @@
         }
     }
 
-    async function trimTransparentEdges(inputBlob: Blob): Promise<Blob> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                const image = new Image();
-                image.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
-
-                    if (!ctx) {
-                        reject(new Error("Could not create canvas context."));
-                        return;
-                    }
-
-                    canvas.width = image.width;
-                    canvas.height = image.height;
-
-                    ctx.drawImage(image, 0, 0);
-
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const { data, width, height } = imageData;
-
-                    let top = 0, left = 0, right = width - 1, bottom = height - 1;
-
-                    topLoop: for (let y = 0; y < height; y++) {
-                        for (let x = 0; x < width; x++) {
-                            const alpha = data[(y * width + x) * 4 + 3];
-                            if (alpha > 0) {
-                                top = y;
-                                break topLoop;
-                            }
-                        }
-                    }
-
-                    bottomLoop: for (let y = height - 1; y >= 0; y--) {
-                        for (let x = 0; x < width; x++) {
-                            const alpha = data[(y * width + x) * 4 + 3];
-                            if (alpha > 0) {
-                                bottom = y;
-                                break bottomLoop;
-                            }
-                        }
-                    }
-
-                    leftLoop: for (let x = 0; x < width; x++) {
-                        for (let y = 0; y < height; y++) {
-                            const alpha = data[(y * width + x) * 4 + 3];
-                            if (alpha > 0) {
-                                left = x;
-                                break leftLoop;
-                            }
-                        }
-                    }
-
-                    rightLoop: for (let x = width - 1; x >= 0; x--) {
-                        let hasNonTransparentPixel = false;
-                        for (let y = 0; y < height; y++) {
-                            const alpha = data[(y * width + x) * 4 + 3];
-                            if (alpha > 0) {
-                                hasNonTransparentPixel = true;
-                                break;
-                            }
-                        }
-                        if (hasNonTransparentPixel) {
-                            right = x;
-                            break rightLoop;
-                        }
-                    }
-
-                    const trimmedWidth = right - left + 1;
-                    const trimmedHeight = bottom - top + 1;
-
-                    if (trimmedWidth <= 0 || trimmedHeight <= 0) {
-                        reject(new Error("Image is fully transparent or invalid."));
-                        return;
-                    }
-
-                    const trimmedCanvas = document.createElement("canvas");
-                    const trimmedCtx = trimmedCanvas.getContext("2d");
-
-                    if (!trimmedCtx) {
-                        reject(new Error("Could not create trimmed canvas context."));
-                        return;
-                    }
-
-                    trimmedCanvas.width = trimmedWidth;
-                    trimmedCanvas.height = trimmedHeight;
-
-                    trimmedCtx.drawImage(
-                        canvas,
-                        left,
-                        top,
-                        trimmedWidth,
-                        trimmedHeight,
-                        0,
-                        0,
-                        trimmedWidth,
-                        trimmedHeight
-                    );
-
-                    trimmedCanvas.toBlob((trimmedBlob) => {
-                        if (trimmedBlob) {
-                            resolve(trimmedBlob);
-                        } else {
-                            reject(new Error("Failed to create Blob from trimmed canvas."));
-                        }
-                    }, "image/png");
-                };
-
-                image.onerror = () => {
-                    reject(new Error("Failed to load image."));
-                };
-
-                image.src = reader.result as string;
-            };
-
-            reader.onerror = () => {
-                reject(new Error("Failed to read Blob."));
-            };
-
-            reader.readAsDataURL(inputBlob);
+    async function downloadProPic() {
+        if (!isImageProcessed) {
+            return ;
+        }
+        const canvas = await html2canvas(proPic, {
+            backgroundColor: null
         });
+        const link = document.createElement('a');
+        link.download = 'propic.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     }
 
     $effect(() => {
@@ -187,19 +80,19 @@
     <div>
         <div class="mb-12 flex flex-col items-center">
             {#if step === 1}
-                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 700, duration: 500 }}>
                     Hang tight, we're removing the background from your image.
                 </span>
-            {:else if step === 2}
-                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
+            {:else if step === 2 && !isImageProcessed}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 700, duration: 500 }}>
                     It's all happenning live from your browser, so it might take some time ...
                 </span>
             {:else if step === 0}
                 <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ duration: 500 }}>
                     Drop your photo or click down below to import it.
                 </span>
-            {:else if isImageProcessed}
-                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 500, duration: 500 }}>
+            {:else if isImageProcessed && step === 2}
+                <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 700, duration: 500 }}>
                     Edit your profile picture as you want!
                 </span>
             {/if}
@@ -210,7 +103,7 @@
                     class="absolute rounded-full bg-gray-950 bg-opacity-50 border-2 border-gray-200 border-dashed w-56 h-56 flex justify-center items-center p-4 text-gray-100"
                     on:dragover={(event) => event.preventDefault()}
                     on:dragenter={(event) => event.preventDefault()}
-                    on:drop={createPop}
+                    on:drop={processImage}
                 >
                     <UploadSolid class="h-24 w-24"/>
                 </div>
@@ -224,19 +117,37 @@
                     <span class="sr-only">Loading...</span>
                 </div>
             {/if}
-            <input type="file" on:change={createPop} hidden>
-            <div class="rounded-full w-60 h-60 overflow-hidden" style="background-color: {color}">
+            <input type="file" on:change={processImage} hidden>
+            <div class="rounded-full w-60 h-60 overflow-hidden" style="background-color: {color}" bind:this={proPic}>
                 {#if isImageProcessed}
-                    <img src={imageUrl} class="max-w-60"/>
+                    <img src={imageUrl} class="max-w-60 relative" style="top: {yImagePosition[0]}px; left: {xImagePosition[0]}px; transform: scale({imageZoom[0]});"/>
                 {/if}
             </div>
     </div>
     {#if isImageProcessed}
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2 mb-8 mt-8 w-96">
             <div>
                 <h1 class="text-gray-700 text-xl font-semibold mb-5">Choose a colour</h1>
                 <input type="color" bind:value={color}>
             </div>
+            <div class="flex flex-col gap-4">
+                <h1 class="text-gray-700 text-xl font-semibold mb-5">Adapt position</h1>
+                <div class="flex flex-col gap-2">
+                    <label>Zoom</label>
+                    <Slider bind:value={imageZoom} min={0} max={3} step={0.1} />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label>X Position</label>
+                    <Slider bind:value={xImagePosition} min={-100} max={100} step={1} />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label>Y Position</label>
+                    <Slider bind:value={yImagePosition} min={-100} max={100} step={1} />
+                </div>
+            </div>
+        </div>
+        <div class="w-full flex justify-center">
+            <Button style="background-color: #679c67;" on:click={downloadProPic}>Download my ProPic</Button>
         </div>
     {/if}
 </main>
