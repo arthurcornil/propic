@@ -17,16 +17,24 @@
     let xImagePosition: number[] = $state([0]);
     let imageZoom: number[] = $state([1]);
     let proPic: HTMLElement;
+    let fileInput: HTMLInputElement;
 
-    async function processImage(event: DragEvent) {
+    async function processImage(event: Event | DragEvent) {
         event.preventDefault();
         event.stopPropagation();
 
-        const droppedFiles = event.dataTransfer?.files;
+        let droppedFiles: FileList | null = null;
+        
+        if (event instanceof DragEvent) {
+            droppedFiles = event.dataTransfer?.files || null;
+        } else if (event.target instanceof HTMLInputElement) {
+            droppedFiles = event.target.files;
+        }
 
         if (!droppedFiles || droppedFiles.length === 0) {
-            return ;
+            return;
         }
+        
         file = droppedFiles[0];
         loading = true;
         const data: Blob = await removeBackgroundFromFile();
@@ -35,6 +43,11 @@
         imageUrl = result.dataURL;
         loading = false;
         isImageProcessed = true;
+
+        // Reset file input to allow selecting the same file again
+        if (fileInput) {
+            fileInput.value = '';
+        }
     }
 
     async function removeBackgroundFromFile(): Promise<Blob> {
@@ -50,9 +63,13 @@
         }
     }
 
+    function triggerFileInput() {
+        fileInput.click();
+    }
+
     async function downloadProPic() {
         if (!isImageProcessed) {
-            return ;
+            return;
         }
         const canvas = await html2canvas(proPic, {
             backgroundColor: null
@@ -69,8 +86,10 @@
             setTimeout(() => {
                 step = 2;
             }, 5000);
-	}}); 
+        }
+    }); 
 </script>
+
 <main class="p-4 flex items-center flex-col gap-12 pt-12">
     <div class="flex flex-col items-center gap-4">
         <span>
@@ -100,12 +119,19 @@
             {/if}
         </div>
         <div class="flex justify-center items-center">
+            <input 
+                type="file" 
+                on:change={processImage} 
+                hidden 
+                bind:this={fileInput}
+            >
             {#if !isImageProcessed && !loading}
                 <div 
                     class="absolute rounded-full bg-gray-950 bg-opacity-50 border-2 border-gray-200 border-dashed w-56 h-56 flex justify-center items-center p-4 text-gray-100"
                     on:dragover={(event) => event.preventDefault()}
                     on:dragenter={(event) => event.preventDefault()}
                     on:drop={processImage}
+                    on:click={triggerFileInput}
                 >
                     <UploadSolid class="h-24 w-24"/>
                 </div>
@@ -119,39 +145,38 @@
                     <span class="sr-only">Loading...</span>
                 </div>
             {/if}
-            <input type="file" on:change={processImage} hidden>
             <div class="rounded-full w-60 h-60 overflow-hidden" style="background-color: {color}" bind:this={proPic}>
                 {#if isImageProcessed}
                     <img src={imageUrl} class="max-w-60 relative" style="top: {yImagePosition[0]}px; left: {xImagePosition[0]}px; transform: scale({imageZoom[0]});"/>
                 {/if}
             </div>
-    </div>
-    {#if isImageProcessed}
-        <div class="grid grid-cols-2 gap-2 mb-8 mt-8 w-96">
-            <div>
-                <h1 class="text-gray-700 text-xl font-semibold mb-5">Choose a colour</h1>
-                <input type="color" bind:value={color}>
-            </div>
-            <div class="flex flex-col gap-4">
-                <h1 class="text-gray-700 text-xl font-semibold mb-5">Adapt position</h1>
-                <div class="flex flex-col gap-2">
-                    <label>Zoom</label>
-                    <Slider bind:value={imageZoom} min={0} max={3} step={0.1} />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label>X Position</label>
-                    <Slider bind:value={xImagePosition} min={-100} max={100} step={1} />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label>Y Position</label>
-                    <Slider bind:value={yImagePosition} min={-100} max={100} step={1} />
-                </div>
-            </div>
         </div>
-        <div class="w-full flex justify-center">
-            <Button style="background-color: #679c67;" on:click={downloadProPic}>Download my ProPic</Button>
-        </div>
-    {/if}
+        {#if isImageProcessed}
+            <div class="grid grid-cols-2 gap-2 mb-8 mt-8 w-96">
+                <div>
+                    <h1 class="text-gray-700 text-xl font-semibold mb-5">Choose a colour</h1>
+                    <input type="color" bind:value={color}>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h1 class="text-gray-700 text-xl font-semibold mb-5">Adapt position</h1>
+                    <div class="flex flex-col gap-2">
+                        <label>Zoom</label>
+                        <Slider bind:value={imageZoom} min={0} max={3} step={0.1} />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label>X Position</label>
+                        <Slider bind:value={xImagePosition} min={-100} max={100} step={1} />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label>Y Position</label>
+                        <Slider bind:value={yImagePosition} min={-100} max={100} step={1} />
+                    </div>
+                </div>
+            </div>
+            <div class="w-full flex justify-center">
+                <Button style="background-color: #679c67;" on:click={downloadProPic}>Download my ProPic</Button>
+            </div>
+        {/if}
 </main>
 <footer class="fixed bottom-0 flex justify-center items-center gap-4 w-screen pb-4">
     <div class="text-gray-700 font-semibold">
