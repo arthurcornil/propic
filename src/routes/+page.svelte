@@ -6,7 +6,6 @@
     import { Slider } from "$lib/components/ui/slider";
     import { Button } from "$lib/components/ui/button";
     import html2canvas from 'html2canvas';
-	import { walk } from 'svelte/compiler';
 
     let file: File | null = $state(null);
     let loading = $state(false);

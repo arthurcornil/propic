@@ -1,38 +1,59 @@
-# sv
+# ProPic - Quick Profile Picture Creator
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+ProPic is a lightweight web app that allows users to create a stylish profile picture with just a few clicks! Users can upload a photo, remove its background (processed directly in the browser), and customize their image with a colourful circular background. The app is built using Svelte and processes everything on the client side, ensuring privacy.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Background Removal:** Removes the background from your image, all within the browser.
+- **Customizable Colors:** Add a colorful circle behind your silhouette.
+- **Image Adjustment:** Fine-tune the zoom and position of your image for the perfect fit.
+- **Downloadable Output:** Download your customized profile picture in PNG format.
+- **Privacy First:** All processing is done locally in your browser—no uploads to a server.
 
-```bash
-# create a new project in the current directory
-npx sv create
+## Tech Stack
 
-# create a new project in my-app
-npx sv create my-app
-```
+- **Framework:** [Svelte](https://svelte.dev)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **UI Components:** [shadcn-svelte](https://github.com/shadcn/svelte)
+- **Background Removal:** [imgly/background-removal](https://github.com/imgly/background-removal)
+- **Cropping Utility:** [autocrop-js](https://github.com/cyrilwanner/autocrop-js)
+- **Canvas Rendering:** [html2canvas](https://html2canvas.hertzen.com)
 
-## Developing
+## How to Run Locally
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+1. Clone this repository:
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
+    ```
 
-```bash
-npm run dev
+2. Install dependencies:
+    ```bash
+    pnpm install
+    ```
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+3. Start the development server:
+    ```bash
+    pnpm run dev
+    ```
+## How to Use
 
-## Building
+1. **Upload an Image:** Drag and drop your image onto the upload area or click to select a file.
+2. **Background Removal:** Wait for the app to process and remove the background.
+3. **Customize:** 
+   - Choose a background color.
+   - Adjust the image's position and zoom using sliders.
+4. **Download:** Click the "Download my ProPic" button to save your profile picture.
 
-To create a production version of your app:
+## Contributing
 
-```bash
-npm run build
-```
+Contributions are welcome! If you have ideas for improving the app or want to fix a bug, feel free to fork the repository and submit a pull request.
 
-You can preview the production build with `npm run preview`.
+## License
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
+---
+
+Enjoy creating your profile pictures with **ProPic**! 🎉
+
