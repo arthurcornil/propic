@@ -1,6 +1,7 @@
 # ProPic - Quick Profile Picture Creator
 
 ProPic is a lightweight web app that allows users to create a stylish profile picture with just a few clicks! Users can upload a photo, remove its background (processed directly in the browser), and customize their image with a colourful circular background. The app is built using Svelte and processes everything on the client side, ensuring privacy.
+[Live Demo](https://propic-livid.vercel.app/)
 
 ## Features
 
