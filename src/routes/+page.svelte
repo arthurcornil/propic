@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { removeBackground } from '@imgly/background-removal';
-    import { UploadSolid } from 'flowbite-svelte-icons';
+    import { UploadSolid, GithubSolid } from 'flowbite-svelte-icons';
     import { fly } from 'svelte/transition';
     import autocrop from 'autocrop-js';
     import { Slider } from "$lib/components/ui/slider";
@@ -73,7 +73,10 @@
 </script>
 <main class="p-4 flex items-center flex-col gap-12 pt-12">
     <div class="flex flex-col items-center gap-4">
-        <h1 class="text-gray-900 text-3xl font-bold">ProPic</h1>
+        <span>
+            <img src="/icon.png" alt="" class="h-24 w-24">
+            <h1 class="text-gray-900 text-3xl font-bold">ProPic</h1>
+        </span>
         <h1 class="text-gray-700 text-xl font-semibold">Generate a cool profile picture in seconds!</h1>
     </div>
     <div>
@@ -150,3 +153,21 @@
         </div>
     {/if}
 </main>
+<footer class="fixed bottom-0 flex justify-center items-center gap-4 w-screen pb-4">
+    <div class="text-gray-700 font-semibold">
+        made by <a 
+            href="https://bento.me/arthurcornil" 
+            class="underline"
+            target="_blank"
+        >
+            arthur
+        </a> :)
+    </div>
+    <a 
+        href="https://github.com/arthurcornil/propic" 
+        target="_blank"
+        class="text-gray-700 font-semibold"
+    >
+        <GithubSolid size="md"/>
+    </a>
+</footer>
