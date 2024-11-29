@@ -90,7 +90,7 @@
     }); 
 </script>
 
-<main class="p-4 flex items-center flex-col gap-12 pt-12">
+<main class="p-4 flex items-center flex-col gap-12 pt-12 pb-12">
     <div class="flex flex-col items-center gap-4">
         <span>
             <img src="/icon.png" alt="" class="h-24 w-24">
@@ -178,7 +178,7 @@
             </div>
         {/if}
 </main>
-<footer class="fixed bottom-0 flex justify-center items-center gap-4 w-screen pb-4">
+<footer class="fixed bottom-0 flex justify-center items-center gap-4 w-screen p-4 bg-white bg-gray-200">
     <div class="text-gray-700 font-semibold">
         made by <a 
             href="https://bento.me/arthurcornil" 
