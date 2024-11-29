@@ -14,17 +14,17 @@ ProPic is a lightweight web app that allows users to create a stylish profile pi
 
 - **Framework:** [Svelte](https://svelte.dev)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com)
-- **UI Components:** [shadcn-svelte](https://github.com/shadcn/svelte)
+- **UI Components:** [shadcn-svelte](https://www.shadcn-svelte.com/#)
 - **Background Removal:** [imgly/background-removal](https://github.com/imgly/background-removal)
-- **Cropping Utility:** [autocrop-js](https://github.com/cyrilwanner/autocrop-js)
+- **Cropping Utility:** [autocrop-js](https://github.com/freearhey/autocrop-js)
 - **Canvas Rendering:** [html2canvas](https://html2canvas.hertzen.com)
 
 ## How to Run Locally
 
 1. Clone this repository:
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone git@github.com:arthurcornil/propic.git
+    cd propic
     ```
 
 2. Install dependencies:
