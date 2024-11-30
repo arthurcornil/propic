@@ -44,7 +44,6 @@
         loading = false;
         isImageProcessed = true;
 
-        // Reset file input to allow selecting the same file again
         if (fileInput) {
             fileInput.value = '';
         }
@@ -124,6 +123,7 @@
                 on:change={processImage} 
                 hidden 
                 bind:this={fileInput}
+                accept="image/png, image/jpg"
             >
             {#if !isImageProcessed && !loading}
                 <div 
