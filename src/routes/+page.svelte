@@ -6,6 +6,7 @@
     import { Slider } from "$lib/components/ui/slider";
     import { Button } from "$lib/components/ui/button";
     import html2canvas from 'html2canvas';
+    import { toast } from 'svelte-sonner';
 
     let file: File | null = $state(null);
     let loading = $state(false);
@@ -36,6 +37,12 @@
         }
         
         file = droppedFiles[0];
+        const validTypes = ['image/png', 'image/jpeg'];
+
+        if (!validTypes.includes(file.type)) {
+            toast.error("Import a jpg or png image");
+            return;
+        }
         loading = true;
         const data: Blob = await removeBackgroundFromFile();
         const url: string = URL.createObjectURL(data);
@@ -113,7 +120,7 @@
                 </span>
             {:else if isImageProcessed && step === 2}
                 <span class="text-gray-600 text-lg font-normal absolute" transition:fly={{ delay: 700, duration: 500 }}>
-                    Edit your profile picture as you want!
+                    Edit your profile picture as you wish!
                 </span>
             {/if}
         </div>
@@ -127,7 +134,7 @@
             >
             {#if !isImageProcessed && !loading}
                 <div 
-                    class="absolute rounded-full bg-gray-950 bg-opacity-50 border-2 border-gray-200 border-dashed w-56 h-56 flex justify-center items-center p-4 text-gray-100"
+                    class="absolute rounded-full bg-gray-950 bg-opacity-50 border-2 border-gray-200 border-dashed w-56 h-56 flex justify-center items-center p-4 text-gray-100 cursor-pointer"
                     on:dragover={(event) => event.preventDefault()}
                     on:dragenter={(event) => event.preventDefault()}
                     on:drop={processImage}
