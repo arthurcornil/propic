@@ -96,7 +96,7 @@
     }); 
 </script>
 
-<main class="p-4 flex items-center flex-col gap-12 pt-12 pb-12">
+<main class="p-4 flex items-center flex-col gap-12 pt-12 pb-12 relative min-h-[calc(100svh-4rem)]">
     <div class="flex flex-col items-center gap-4">
         <span>
             <img src="/icon.png" alt="" class="h-24 w-24">
@@ -185,21 +185,22 @@
             </div>
         {/if}
 </main>
-<footer class="fixed bottom-0 flex justify-center items-center gap-4 w-screen p-4 bg-white bg-gray-200">
-    <div class="text-gray-700 font-semibold">
+<footer class="absolute flex justify-center items-center gap-4 w-screen p-4 bg-green-50 h-16">
+    <div class="text-gray-700 font-semibold flex items-center gap-2">
         made by <a 
             href="https://bento.me/arthurcornil" 
-            class="underline"
+            class="underline flex gap-1 items-center cursor-pointer"
             target="_blank"
         >
             arthur
-        </a> :)
+            <img src="./author.png" class="size-10"/>
+        </a> 
     </div>
     <a 
         href="https://github.com/arthurcornil/propic" 
         target="_blank"
         class="text-gray-700 font-semibold"
     >
-        <GithubSolid size="md"/>
+        <GithubSolid class="size-12"/>
     </a>
 </footer>
