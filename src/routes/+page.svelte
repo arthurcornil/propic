@@ -174,7 +174,7 @@
     {/if}
 </main>
 <footer class="absolute flex justify-center items-center gap-4 w-screen p-4 bg-green-50 h-16">
-    <div class="text-gray-700 font-semibold flex items-center gap-2">
+    <div class="text-gray-700 font-semibold flex items-center gap-1">
         made by <a 
             href="https://bento.me/arthurcornil" 
             class="underline flex gap-1 items-center cursor-pointer"
