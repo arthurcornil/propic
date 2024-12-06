@@ -40,14 +40,18 @@
         }
 
         loading = true;
-        const data: Blob = await removeBackgroundFromFile();
-        const url: string = URL.createObjectURL(data);
-        const result = await autocrop(url, { alphaThreshold: 10 });
-
-        imageUrl = result.dataURL;
+        try {
+            const data: Blob = await removeBackgroundFromFile();
+            const url: string = URL.createObjectURL(data);
+            const result = await autocrop(url, { alphaThreshold: 10 });
+            imageUrl = result.dataURL;
+            isImageProcessed = true;
+            fileInput.value = '';
+        } catch(err) {
+            toast.error(`${err}`);
+            step = 0;
+        }
         loading = false;
-        isImageProcessed = true;
-        fileInput.value = '';
     }
 
     async function removeBackgroundFromFile(): Promise<Blob> {
