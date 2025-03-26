@@ -180,7 +180,7 @@
 <footer class="absolute flex justify-center items-center gap-4 w-screen p-4 bg-green-50 h-16">
     <div class="text-gray-700 font-semibold flex items-center gap-1">
         made by <a 
-            href="https://bento.me/arthurcornil" 
+            href="buildthe.world" 
             class="underline flex gap-1 items-center cursor-pointer"
             target="_blank"
         >
@@ -188,11 +188,4 @@
             <img src="./author.png" class="size-10"/>
         </a> 
     </div>
-    <a 
-        href="https://github.com/arthurcornil/propic" 
-        target="_blank"
-        class="text-gray-700 font-semibold"
-    >
-        <GithubSolid class="size-12"/>
-    </a>
 </footer>
